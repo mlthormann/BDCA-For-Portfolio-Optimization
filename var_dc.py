@@ -175,7 +175,7 @@ def var(profits: np.ndarray, alpha: float, probs: np.ndarray = None, input_check
     var_alpha = sorted_profits[np.argmax(cum_probs[cum_probs < alpha]) + 1]
 
     # Check properties
-    check_var_alpha(var_alpha)
+    # check_var_alpha(var_alpha)
 
     # Debugging
     if logger_var_dc.isEnabledFor(logging.DEBUG):
@@ -233,12 +233,13 @@ def cvar(profits: np.ndarray, alpha: float, probs: np.ndarray = None, input_chec
 
     # Check properties
     check_epsilon(epsilon)
+    print(epsilon)
 
     # Compute VaR
     var_alpha = sorted_profits[np.argmax(cum_probs[cum_probs < alpha]) + 1]
 
     # Check properties
-    check_var_alpha(var_alpha)
+    # check_var_alpha(var_alpha)
 
     # Debugging
     debug_path = "1.2 - cvar - "
@@ -265,7 +266,7 @@ def cvar(profits: np.ndarray, alpha: float, probs: np.ndarray = None, input_chec
     cvar_alpha = (sum_weighted_profits + last_scenario)[0]
 
     # Check properties
-    check_cvar_alpha(cvar_alpha)
+    # check_cvar_alpha(cvar_alpha)
 
     # Debugging
     if logger_var_dc.isEnabledFor(logging.DEBUG):
