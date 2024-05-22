@@ -14,12 +14,12 @@
 -- Content:     0. Set-up
 --                  0.0 Required Libraries
 --                  0.1 Logging Set-up
---              2. Dow Jones
---              3. FF49 Industries
---              4. FTSE 100
---              5. NASDAQ 100
---              6. NASDAQ Comp
---              7. Publisher's Imprint
+--              1. Dow Jones
+--              2. FF49 Industries
+--              3. FTSE 100
+--              4. NASDAQ 100
+--              5. NASDAQ Comp
+--              6. Publisher's Imprint
 --
 ------------------------------------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------------------------------------
@@ -27,6 +27,7 @@ Version  Date        Author    Major Changes
 1.0      2023-02-02  MLT       Initialization
 1.1      2023-02-09  MLT       Removal of NASDAQ Comp due to implausible values
 1.2      2023-03-22  MLT       Finalized documentation
+1.3      2024-05-22  MLT       Smaller corrections of comments
 ------------------------------------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------------------------------------
 """
@@ -40,6 +41,8 @@ Version  Date        Author    Major Changes
 # Generally required
 import pandas as pd
 import numpy as np
+
+# To create log files
 import logging
 
 ######################################################################################################
@@ -66,10 +69,10 @@ logger_data.addHandler(file_handler)
 file_handler.setFormatter(formatter)
 
 # Add logs to the console
-stream_handler = logging.StreamHandler()
+# stream_handler = logging.StreamHandler()
 
 # Add it to the logger
-logger_data.addHandler(stream_handler)
+# logger_data.addHandler(stream_handler)
 
 ########################################################################################################################
 # 1. Dow Jones
@@ -201,8 +204,7 @@ nasdaq100_data = nasdaq100_data.to_numpy()
 
 __author__ = "Marah-Lisanne Thormann"
 __credits__ = ["Phan Vuong", "Alain Zemkoho", "Renato Bruni", "Francesco Cesarone", "Andrea Scozzari", "Fabio Tardella"]
-__version__ = "1.2"
-__maintainer__ = "Marah-Lisanne Thormann"
+__version__ = "1.3"
 __email__ = "m.-l.thormann@soton.ac.uk"
 
 ########################################################################################################################
