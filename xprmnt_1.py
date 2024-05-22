@@ -29,6 +29,7 @@
 Version  Date        Author    Major Changes
 1.0      2023-02-01  MLT       Initialization
 1.1      2023-03-23  MLT       Finalized documentation
+1.2      2024-05-22  MLT       Smaller corrections of comments
 ------------------------------------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------------------------------------
 """
@@ -42,6 +43,8 @@ Version  Date        Author    Major Changes
 # Generally required
 import sys
 import os
+
+# For parallel computation
 from multiprocessing import Pool
 from itertools import product
 
@@ -55,25 +58,25 @@ from data_sets import *
 # 0.1 Batch Variables
 ######################################################################################################
 
-# Optimizer: BDCA vs DCA
+# Optimizer [BDCA,  DCA]
 input_optimizer = sys.argv[1]
 
-# VaR constraint
+# VaR constraint [0.958, ..., 0.966]
 input_var = float(sys.argv[2])
 
-# Input data set
+# Input data set [dj, ff49, ftse100, nasdaq100]
 input_data = sys.argv[3]
 
-# Stopping Mechanism
+# Stopping Mechanism [iter, func_abs, func_rel, vec_abs, vec_rel]
 input_stop_meacha = sys.argv[4]
 
-# Start repetition
+# Start repetition [1, ..., 499]
 input_brep = sys.argv[5]
 
-# End repetition
+# End repetition [2, ..., 500]
 input_erep = sys.argv[6]
 
-# Maximum amount of iterations
+# Maximum amount of iterations [1000]
 input_max_iter = sys.argv[7]
 
 ######################################################################################################
@@ -90,9 +93,9 @@ logger.setLevel(logging.INFO)
 formatter = logging.Formatter(fmt='%(asctime)s[%(levelname)s] %(name)s.%(funcName)s: %(message)s',
                               datefmt='%m/%d/%Y %I:%M:%S %p')
 
-# Create logging file
+# Create log file
 log_file_name = input_data + "_" + input_optimizer + "_" + input_stop_meacha + "_" + str(input_var) + ".log"
-file_handler = logging.FileHandler("log_file_" + log_file_name)
+file_handler = logging.FileHandler("log_file.log")
 
 # Add file to logger
 logger.addHandler(file_handler)
@@ -101,10 +104,10 @@ logger.addHandler(file_handler)
 file_handler.setFormatter(formatter)
 
 # Add logs to the console
-stream_handler = logging.StreamHandler()
+# stream_handler = logging.StreamHandler()
 
 # Add it to the logger
-logger.addHandler(stream_handler)
+# logger.addHandler(stream_handler)
 
 ########################################################################################################################
 # 1. Numerical Experiment
@@ -131,12 +134,11 @@ else:
 ######################################################################################################
 
 # Different components of file path
-path_1 = "Simulation/" + data_path + "/sim_" + data_path + "_"
-path_2 = input_optimizer + "_" + str(input_var) + "_" + input_stop_meacha
-path_3 = "_brep_" + str(input_brep) + "_erep_" + str(input_erep) + ".csv"
+path_1 = f"Simulation/{data_path}/sim_{data_path}_{input_optimizer}_{input_var}_{input_stop_meacha}_"
+path_2 = f"_brep_{input_brep}_erep_{input_erep}.csv"
 
 # Combine components to file path
-results_file = path_1 + path_2 + path_3
+results_file = path_1 + path_2
 
 # Create file in folder if it does not exist so far
 if not os.path.isfile(results_file):
@@ -153,6 +155,8 @@ if not os.path.isfile(results_file):
 
 def main():
     # Define all components for the grid search
+
+    # File to store the results
     file = [results_file]
 
     # Define beginning of file name based on the data set
@@ -193,7 +197,7 @@ def main():
     # Data set [dow_jones_data, ff49_data, ftse100_data, nasdaq100_data]
     return_dat = [data_set]
 
-    # Scenario Probabilities
+    # Scenario Probabilities (if None, all scenarios have equal probabilities)
     probs = [None]
 
     # Number of decimals for stopping criterion (tolerance)
@@ -222,8 +226,7 @@ if __name__ == "__main__":
 
 __author__ = "Marah-Lisanne Thormann"
 __credits__ = ["Phan Vuong", "Alain Zemkoho"]
-__version__ = "1.1"
-__maintainer__ = "Marah-Lisanne Thormann"
+__version__ = "1.2"
 __email__ = "m.-l.thormann@soton.ac.uk"
 
 ########################################################################################################################
