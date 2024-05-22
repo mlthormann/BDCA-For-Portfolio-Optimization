@@ -28,6 +28,7 @@
 ------------------------------------------------------------------------------------------------------------------------
 Version  Date        Author    Major Changes
 1.0      2023-03-01  MLT       Initialization
+1.1      2024-05-22  MLT       Smaller corrections of comments
 ------------------------------------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------------------------------------
 """
@@ -56,16 +57,16 @@ from itertools import product
 # 0.1 Batch Variables
 ######################################################################################################
 
-# VaR constraint
+# VaR constraint [0.958, ..., 0.968]
 input_var = float(sys.argv[1])
 
-# Input data set
+# Input data set [dj, ff49, ftse100, nasdaq100]
 input_data = sys.argv[2]
 
-# Start repetition
+# Start repetition [1, ..., 499]
 input_brep = sys.argv[3]
 
-# End repetition
+# End repetition [2, ..., 500]
 input_erep = sys.argv[4]
 
 ######################################################################################################
@@ -83,8 +84,7 @@ formatter = logging.Formatter(fmt='%(asctime)s[%(levelname)s] %(name)s.%(funcNam
                               datefmt='%m/%d/%Y %I:%M:%S %p')
 
 # Create logging file
-log_file_name = input_data + "_fixed_cost_approach_" + "_" + str(input_var) + ".log"
-file_handler = logging.FileHandler("log_file_" + log_file_name)
+file_handler = logging.FileHandler("log_file.log")
 
 # Add file to logger
 logger.addHandler(file_handler)
@@ -93,10 +93,10 @@ logger.addHandler(file_handler)
 file_handler.setFormatter(formatter)
 
 # Add logs to the console
-stream_handler = logging.StreamHandler()
+# stream_handler = logging.StreamHandler()
 
 # Add it to the logger
-logger.addHandler(stream_handler)
+# logger.addHandler(stream_handler)
 
 ########################################################################################################################
 # 1. Numerical Experiment
@@ -123,12 +123,11 @@ else:
 ######################################################################################################
 
 # Different components of file path
-path_1 = "Simulation/" + data_path + "/sim_" + data_path + "_"
-path_2 = str(input_var) + "_fixed_cost_approach"
-path_3 = "_brep_" + str(input_brep) + "_erep_" + str(input_erep) + ".csv"
+path_1 = f"Simulation/{data_path}/sim_{data_path}_{input_var}_fixed_cost_approach_"
+path_2 = f"brep_{input_brep}_erep_{input_erep}.csv"
 
 # Combine components to file path
-results_file = path_1 + path_2 + path_3
+results_file = path_1 + path_2
 
 # Create file in folder if it does not exist so far
 if not os.path.isfile(results_file):
@@ -178,7 +177,7 @@ def main():
     # Data set [dow_jones_data, ff49_data, ftse100_data, nasdaq100_data]
     return_dat = [data_set]
 
-    # Scenario Probabilities
+    # Scenario Probabilities (if None, all scenarios have equal probabilities)
     probs = [None]
 
     # Number of decimals for stopping criterion (tolerance)
@@ -207,7 +206,6 @@ if __name__ == "__main__":
 __author__ = "Marah-Lisanne Thormann"
 __credits__ = ["Phan Vuong", "Alain Zemkoho"]
 __version__ = "1.1"
-__maintainer__ = "Marah-Lisanne Thormann"
 __email__ = "m.-l.thormann@soton.ac.uk"
 
 ########################################################################################################################

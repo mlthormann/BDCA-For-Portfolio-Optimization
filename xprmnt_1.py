@@ -94,7 +94,6 @@ formatter = logging.Formatter(fmt='%(asctime)s[%(levelname)s] %(name)s.%(funcNam
                               datefmt='%m/%d/%Y %I:%M:%S %p')
 
 # Create log file
-log_file_name = input_data + "_" + input_optimizer + "_" + input_stop_meacha + "_" + str(input_var) + ".log"
 file_handler = logging.FileHandler("log_file.log")
 
 # Add file to logger
