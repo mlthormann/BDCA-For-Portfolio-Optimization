@@ -5,12 +5,12 @@
 ------------------------------------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------------------------------------
 --
--- The Boosted Difference of Convex Algorithm (BDCA).
+-- The Boosted Difference of Convex Functions Algorithm (BDCA).
 --
--- Description: In this script the Boosted Difference of Convex Algorithm (BDCA) will be defined as an extension of the
---              Difference of Convex Algorithm (DCA). The objects are defined based on the content of Tao and El
---              Bernoussi (1988), Aragon Artacho et al. (2018), Aragon Artacho and Vuong (2020) and Aragon Artacho et
---              al. (2022). The papers can be found based on the following links:
+-- Description: In this script the Boosted Difference of Convex Functions Algorithm (BDCA) will be defined as an
+--              extension of the Difference of Convex Functions Algorithm (DCA). The objects are defined based on the
+--              content of Tao and El Bernoussi (1988), Aragon Artacho et al. (2018), Aragon Artacho and Vuong (2020)
+--              and Aragon Artacho et al. (2022). The papers can be found based on the following links:
 --              https://doi.org/10.1007/978-3-0348-9297-1_18, https://doi.org/10.1007/s10107-017-1180-1,
 --              https://doi.org/10.1137/18M123339X, https://arxiv.org/abs/1908.01138.
 --
@@ -28,6 +28,7 @@ Version  Date        Author    Major Changes
 1.0      2023-01-13  MLT       Initialization
 1.1      2023-02-09  MLT       Smaller adjustments and more comments
 1.2      2023-03-22  MLT       Finalized documentation
+1.3      2024-05-22  MLT       Smaller corrections of comments and input checks
 ------------------------------------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------------------------------------
 """
@@ -71,10 +72,10 @@ logger_bdca.addHandler(file_handler)
 file_handler.setFormatter(formatter)
 
 # Add logs to the console
-stream_handler = logging.StreamHandler()
+# stream_handler = logging.StreamHandler()
 
 # Add it to the logger
-logger_bdca.addHandler(stream_handler)
+# logger_bdca.addHandler(stream_handler)
 
 ########################################################################################################################
 # 1. DCA Object
@@ -83,11 +84,11 @@ logger_bdca.addHandler(stream_handler)
 
 class dca:
     """
-    The Difference-of-Convex Algorithm (DCA) initialization.
+    The Difference-of-Convex Functions Algorithm (DCA).
 
     :param g_x: The left convex function of the DC objective function.
     :param h_x: The right convex function of the DC objective function.
-    :param dh_x: The linear approximation of the right convex function of the DC objective function.
+    :param dh_x: The linear approximation of h_x based on the gradient.
     :return: None.
     """
     def __init__(self, g_x: callable, h_x: callable, dh_x: callable) -> None:
@@ -116,14 +117,16 @@ class dca:
         # Check function inputs
 
         if input_checks:
+
+            debug_path = "1.0 - dca - update_key_values - input_checks - "
+
             # Func_args_dict
             if not isinstance(func_args_dict, dict):
-                logger_bdca.error('1.0 - dca - update_key_values - input_check - func_args_dict: {}'.format(
-                                  type(func_args_dict)))
+                logger_bdca.error(debug_path + f'func_args_dict: {type(func_args_dict)}')
                 raise TypeError("The provided input for the argument 'func_args_dict' is not a dictionary.")
             # Args_dict
             if not isinstance(args_dict, dict):
-                logger_bdca.error('1.0 - dca - update_key_values - input_check - args_dict: {}'.format(type(args_dict)))
+                logger_bdca.error(debug_path + f'args_dict: {type(args_dict)}')
                 raise TypeError("The provided input for the argument 'args_dict' is not a dictionary.")
 
         # --------------------------------------------------------------------------------------------------------------
@@ -140,9 +143,9 @@ class dca:
 
     def f_x(self, x: np.ndarray, args_dict: dict, input_checks: bool = True) -> float:
         """
-        Computes the difference-of-convex objective function value.
+        Computes the DC objective function value.
 
-        :param x: An array that contains the function input values.
+        :param x: A np.ndarray that contains the function inputs.
         :param args_dict: A dictionary that contains all required function inputs for g(x) and h(x).
         :param input_checks: A boolean that indicates if the input check functions should be applied.
         :return: A float that corresponds to the objective function value.
@@ -151,15 +154,17 @@ class dca:
         # Check function inputs
         
         if input_checks:
-            debug_path = "1.0 - dca - f_x - input_check - "
-            # X
+
+            debug_path = "1.0 - dca - f_x - input_checks - "
+
+            # Check x
             if not isinstance(x, np.ndarray):
-                logger_bdca.error(debug_path + 'type(x): {}'.format(type(x)))
+                logger_bdca.error(debug_path + f'type(x): {type(x)}')
                 raise TypeError("The provided input for the argument 'x' is not a np.ndarray.")
     
-            # Args_dict
+            # Check args_dict
             if not isinstance(args_dict, dict):
-                logger_bdca.error(debug_path + 'args_dict: {}'.format(type(args_dict)))
+                logger_bdca.error(debug_path + f'args_dict: {type(args_dict)}')
                 raise TypeError("The provided input for the argument 'args_dict' is not a dictionary.")
 
         # --------------------------------------------------------------------------------------------------------------
@@ -173,42 +178,44 @@ class dca:
 
         # Debugging
         if logger_var_dc.isEnabledFor(logging.DEBUG):
-            logger_bdca.debug('1.0 - dca - f(x): {}'.format(self.g_x(x, **self.g_x_params) -
-                                                            self.h_x(x, **self.h_x_params)))
+            fx = self.g_x(x, **self.g_x_params) - self.h_x(x, **self.h_x_params)
+            logger_bdca.debug(f'1.0 - dca - f(x): {fx}')
 
         return self.g_x(x, **self.g_x_params) - self.h_x(x, **self.h_x_params)
 
     def f_x_proxy(self, x: np.ndarray, x_0: np.ndarray, args_dict: dict, input_checks: bool = True) -> float:
         """
-        Computes the approximated difference-of-convex objective function value.
+        Computes the objective function value of the convex subproblem.
 
-        :param x: An array that contains the function input values.
-        :param x_0: An array that contains the function input values from the previous iteration.
+        :param x: A np.ndarray that contains the function inputs.
+        :param x_0: A np.ndarray that contains the function inputs from the previous iteration.
         :param args_dict: A dictionary that contains all required function inputs for g(x) and h(x).
         :param input_checks: A boolean that indicates if the input check functions should be applied.
-        :return: A float that corresponds to the approximated objective function value.
+        :return: A float that corresponds to the objective function value of the convex subproblem.
         """
         # --------------------------------------------------------------------------------------------------------------
         # Check function inputs
         
         if input_checks:
-            debug_path = "1.0 - dca - f_x_proxy - input_check - "
-            # X
+
+            debug_path = "1.0 - dca - f_x_proxy - input_checks - "
+
+            # Check x
             if not isinstance(x, np.ndarray):
-                logger_bdca.error(debug_path + 'type(x): {}'.format(type(x)))
+                logger_bdca.error(debug_path + f'type(x): {type(x)}')
                 raise TypeError("The provided input for the argument 'x' is not a np.ndarray.")
     
-            # X_0
+            # Check x_0
             if not isinstance(x_0, np.ndarray):
-                logger_bdca.error(debug_path + 'type(x_0): {}'.format(type(x_0)))
+                logger_bdca.error(debug_path + f'type(x_0): {type(x_0)}')
                 raise TypeError("The provided input for the argument 'x_0' is not a np.ndarray.")
             elif x.shape != x_0.shape:
-                logger_bdca.error(debug_path + 'x.shape != x_0.shape: {}, {}'.format(x.shape, x_0.shape))
+                logger_bdca.error(debug_path + f'x.shape != x_0.shape: {x.shape}, {x_0.shape}')
                 raise TypeError("The shapes of 'x' and 'x_0' are not the same.")
     
-            # Args_dict
+            # Check args_dict
             if not isinstance(args_dict, dict):
-                logger_bdca.error(debug_path + 'args_dict: {}'.format(type(args_dict)))
+                logger_bdca.error(debug_path + f'args_dict: {type(args_dict)}')
                 raise TypeError("The provided input for the argument 'args_dict' is not a dictionary.")
 
         # --------------------------------------------------------------------------------------------------------------
@@ -222,8 +229,8 @@ class dca:
 
         # Debugging
         if logger_var_dc.isEnabledFor(logging.DEBUG):
-            logger_bdca.debug('1.0 - dca - f_proxy(x): {}'.format(
-                              self.g_x(x, **self.g_x_params) - np.dot(self.dh_x(x_0, **self.dh_x_params), x)))
+            fx_proxy = self.g_x(x, **self.g_x_params) - np.dot(self.dh_x(x_0, **self.dh_x_params), x)
+            logger_bdca.debug(f'1.0 - dca - f_proxy(x): {fx_proxy}')
 
         return self.g_x(x, **self.g_x_params) - np.dot(self.dh_x(x_0, **self.dh_x_params), x)
 
@@ -271,6 +278,7 @@ class dca:
 
         # Sequence that excludes the last value in the objective function vector: ||f(x_{k}) - f(x^*)||
         lower_part = np.abs(self.track_f - self.track_f[-1])[:(len(self.track_f) - 1)]
+
         # Sequence that excludes the first value in the objective function vector: ||f(x_{k + 1}) - f(x^*)||
         upper_part = np.abs(self.track_f - self.track_f[-1])[1:]
 
@@ -330,9 +338,9 @@ class dca:
                       bdca_value: float = None,
                       verbose: bool = False, **kwargs) -> None:
         """
-        Performs the DC optimization, i.e. the minimization of the objective function for given inputs.
+        Performs the DCA, i.e. the minimization of the objective function for given inputs.
 
-        :param x_0: An array that contains the starting values for the objective function.
+        :param x_0: A np.ndarray that contains the starting points.
         :param k_max: A non-negative integer that corresponds to the maximal number of iterations.
         :param args_dict: A dictionary that contains all relevant function inputs for f(x).
         :param stop_crit: A string that indicates the stopping criteria.
@@ -345,64 +353,69 @@ class dca:
         # --------------------------------------------------------------------------------------------------------------
         # Check function inputs
 
-        debug_path = "1.0 - dca - dca_optimizer - "
+        debug_path = "1.0 - dca - dca_optimizer - input_checks - "
         
-        # X_0
+        # Check x_0
         if not isinstance(x_0, np.ndarray):
-            logger_bdca.error(debug_path + 'input_check - type(x_0): {}'.format(type(x_0)))
+            logger_bdca.error(debug_path + f'type(x_0): {type(x_0)}')
             raise TypeError("The provided input for the argument 'x_0' is not a np.ndarray.")
         
-        # K_max
+        # Check k_max
         if not isinstance(k_max, int):
-            logger_bdca.error(debug_path + 'input_check - type(k_max): {}'.format(type(k_max)))
-            raise TypeError("The provided input for the argument 'k_max' is not a integer.")
+            logger_bdca.error(debug_path + f'type(k_max): {type(k_max)}')
+            raise TypeError("The provided input for the argument 'k_max' is not an integer.")
         elif k_max < 1:
-            logger_bdca.error(debug_path + 'input_check - x_0 < 1: {}'.format(x_0))
+            logger_bdca.error(debug_path + f'k_max < 1: {k_max}')
             raise ValueError("The provided input for the argument 'k_max' is smaller than 1.")
         
-        # Args_dict
+        # Check args_dict
         if not isinstance(args_dict, dict):
-            logger_bdca.error(debug_path + 'input_check - args_dict: {}'.format(type(args_dict)))
+            logger_bdca.error(debug_path + f'args_dict: {type(args_dict)}')
             raise TypeError("The provided input for the argument 'args_dict' is not a dictionary.")
         
-        # Stop_crit
+        # Check stop_crit
         if not isinstance(stop_crit, str):
-            logger_bdca.error(debug_path + 'input_check - stop_crit: {}'.format(type(stop_crit)))
+            logger_bdca.error(debug_path + f'stop_crit: {type(stop_crit)}')
             raise TypeError("The provided input for the argument 'stop_crit' is not a string.")
         elif stop_crit not in ['iter', 'func_abs', "func_rel", 'vec_abs', "vec_rel", "bdca"]:
-            logger_bdca.error(debug_path + 'input_check - stop_crit: {}'.format(stop_crit))
-            raise ValueError("The provided input 'stop_crit' is not valid. The options are: 'iter', 'func' and 'vec'.")
+            logger_bdca.error(debug_path + f'stop_crit: {stop_crit}')
+            raise ValueError("The provided input 'stop_crit' is not valid. "
+                             "The options are: 'iter', 'func_abs', 'func_rel', 'vec_abs', 'vec_rel' and 'bdca'.")
         
-        # Decs
+        # Check decs
         if not isinstance(decs, int):
-            logger_bdca.error(debug_path + 'input_check - type(decs): {}'.format(type(decs)))
-            raise TypeError("The provided input for the argument 'decs is not a integer.")
-        elif k_max < 0:
-            logger_bdca.error(debug_path + 'input_check - decs < 0: {}'.format(decs))
+            logger_bdca.error(debug_path + f'type(decs): {type(decs)}')
+            raise TypeError("The provided input for the argument 'decs is not an integer.")
+        elif decs < 0:
+            logger_bdca.error(debug_path + f'decs < 0: {decs}')
             raise ValueError("The provided input for the argument 'decs' is smaller than 0.")
         
-        # Verbose
+        # Check verbose
         if not isinstance(verbose, bool):
-            logger_bdca.error(debug_path + 'input_check - type(verbose): {}'.format(type(verbose)))
+            logger_bdca.error(debug_path + f'type(verbose): {type(verbose)}')
             raise TypeError("The provided input for the argument 'verbose' is not a boolean.")
             
         # --------------------------------------------------------------------------------------------------------------
         # Compute output
+
+        debug_path = "1.0 - dca - dca_optimizer - compute output - "
         
         # Current iteration
         k = 0
         # Initial input vectors
         x_k = x_0
+
+        # Initialization of the while loop condition
         cond = True
         
-        # Compute initial (approximated) objective function value and store it
+        # Compute initial objective function and convex approximation and store the results
         self.track_f_proxy = np.array(self.f_x_proxy(x_k, x_k, args_dict))
         self.track_f = np.array(self.f_x(x_k, args_dict))
 
         # Debugging
         if logger_bdca.isEnabledFor(logging.DEBUG):
-            logger_bdca.debug(debug_path + 'initial f(x): {}'.format(self.track_f[k]))
-            logger_bdca.debug(debug_path + 'initial f_proxy(x): {}'.format(self.track_f_proxy[k]))
+            logger_bdca.debug(debug_path + f'initial f(x): {np.round(self.track_f[k], decs)}')
+            logger_bdca.debug(debug_path + f'initial f_proxy(x): {np.round(self.track_f_proxy[k], decs)}')
 
         while cond:
 
@@ -425,20 +438,20 @@ class dca:
             # ----------------------------------------------------------------------------------------------------------
             # Check new solution
 
-            # Update the track of the (approximated) objective function value
+            # Update the track of the objective function value and the convex approximation
             self.track_f_proxy = np.append(self.track_f_proxy, self.f_x_proxy(res.x, x_k, args_dict))
             self.track_f = np.append(self.track_f, self.f_x(res.x, args_dict))
 
             # Debugging
             if logger_bdca.isEnabledFor(logging.DEBUG):
-                logger_bdca.debug(debug_path + 'iteration: {}'.format(k))
-                logger_bdca.debug(debug_path + 'min(res.x): {}'.format(np.min(res.x)))
-                logger_bdca.debug(debug_path + 'max(res.x): {}'.format(np.max(res.x)))
-                logger_bdca.debug(debug_path + 'mean(res.x): {}'.format(np.mean(res.x)))
-                logger_bdca.debug(debug_path + 'median(res.x): {}'.format(np.median(res.x)))
-                logger_bdca.debug(debug_path + 'sum(res.x): {}'.format(np.sum(res.x)))
-                logger_bdca.debug(debug_path + 'current f_proxy(x): {}'.format(self.track_f_proxy[k]))
-                logger_bdca.debug(debug_path + 'current f(x): {}'.format(self.track_f[k]))
+                logger_bdca.debug(debug_path + f'iteration: {k}')
+                logger_bdca.debug(debug_path + f'min(res.x): {np.round(np.min(res.x), decs)}')
+                logger_bdca.debug(debug_path + f'max(res.x): {np.round(np.max(res.x), decs)}')
+                logger_bdca.debug(debug_path + f'avg(res.x): {np.round(np.mean(res.x), decs)}')
+                logger_bdca.debug(debug_path + f'q50(res.x): {np.round(np.median(res.x), decs)}')
+                logger_bdca.debug(debug_path + f'sum(res.x): {np.round(np.sum(res.x), decs)}')
+                logger_bdca.debug(debug_path + f'f_proxy(res.x): {np.round(self.track_f_proxy[k], decs)}')
+                logger_bdca.debug(debug_path + f'f(res.x): {np.round(self.track_f[k], decs)}')
 
             # Check if current solution is feasible
             curr_solu = res.x
@@ -508,11 +521,11 @@ class dca:
 
 class bdca(dca):
     """
-    The Boosted Difference-of-Convex Algorithm (BDCA) initialization.
+    The Boosted Difference-of-Convex Functions Algorithm (BDCA).
 
-    :param g_x: The left convex function of the DC objective function.
-    :param h_x: The right convex function of the DC objective function.
-    :param dh_x: The linear approximation of the right convex function of the DC objective function.
+    :param g_x: The left convex function of the DC.
+    :param h_x: The right convex function of the DC.
+    :param dh_x: The linear approximation of h_x based on the gradient.
     :return: None.
     """
     def __init__(self, g_x, h_x, dh_x) -> None:
@@ -530,19 +543,19 @@ class bdca(dca):
                        k_max: int,
                        args_dict: dict,
                        stop_crit: str,
-                       alpha_2: float = 0.5,
+                       alpha_bar: float = 0.5,
                        lambda_bar: float = None,
                        beta: float = 0.1,
                        decs: int = 10,
                        verbose: bool = False, **kwargs) -> None:
         """
-        Performs the BDC optimization, i.e. minimization of the objective function for given inputs.
+        Performs the BDCA.
 
-        :param x_0: An array that contains the starting values for the objective function.
+        :param x_0: A np.ndarray that contains the starting points.
         :param k_max: A non-negative integer that corresponds to the maximal number of iterations.
         :param args_dict: A dictionary that contains all relevant function inputs for f(x).
         :param stop_crit: A string that indicates the stopping criteria.
-        :param alpha_2: A non-negative float that is used as constant in the backtracking procedure.
+        :param alpha_bar: A non-negative float that is used as constant in the backtracking procedure.
         :param lambda_bar: A float that serves as starting point for lambda_k of the backtracking procedure.
         :param beta: A float in the interval (0, 1) that scales down lambda_k in the backtracking procedure.
         :param decs: An integer that indicates the relevant decimals for the "func" and "vec" stopping criteria.
@@ -554,75 +567,79 @@ class bdca(dca):
         # Check function inputs
 
         # Set up debug path
-        debug_path = "2.0 - bdca - bdca_optimizer - "
+        debug_path = "2.0 - bdca - bdca_optimizer - input checks - "
 
-        # X_0
+        # Check x_0
         if not isinstance(x_0, np.ndarray):
-            logger_bdca.error(debug_path + 'input_check - type(x_0): {}'.format(type(x_0)))
+            logger_bdca.error(debug_path + f'type(x_0): {type(x_0)}')
             raise TypeError("The provided input for the argument 'x_0' is not a np.ndarray.")
 
-        # K_max
+        # Check k_max
         if not isinstance(k_max, int):
-            logger_bdca.error(debug_path + 'input_check - type(k_max): {}'.format(type(k_max)))
-            raise TypeError("The provided input for the argument 'k_max' is not a integer.")
+            logger_bdca.error(debug_path + f'type(k_max): {type(k_max)}')
+            raise TypeError("The provided input for the argument 'k_max' is not an integer.")
         elif k_max < 1:
-            logger_bdca.error(debug_path + 'input_check - x_0 < 1: {}'.format(x_0))
+            logger_bdca.error(debug_path + f'k_max < 1: {k_max}')
             raise ValueError("The provided input for the argument 'k_max' is smaller than 1.")
 
-        # Args_dict
+        # Check args_dict
         if not isinstance(args_dict, dict):
-            logger_bdca.error(debug_path + 'input_check - args_dict: {}'.format(type(args_dict)))
+            logger_bdca.error(debug_path + f'args_dict: {type(args_dict)}')
             raise TypeError("The provided input for the argument 'args_dict' is not a dictionary.")
 
-        # Stop_crit
+        # Check stop_crit
         if not isinstance(stop_crit, str):
-            logger_bdca.error(debug_path + 'input_check - stop_crit: {}'.format(type(stop_crit)))
+            logger_bdca.error(debug_path + f'stop_crit: {type(stop_crit)}')
             raise TypeError("The provided input for the argument 'stop_crit' is not a string.")
         elif stop_crit not in ['iter', 'func_abs', "func_rel", 'vec_abs', "vec_rel"]:
-            logger_bdca.error(debug_path + 'input_check - stop_crit: {}'.format(stop_crit))
-            raise ValueError("The provided input 'stop_crit' is not valid. The options are: 'iter', 'func' and 'vec'.")
+            logger_bdca.error(debug_path + f'stop_crit: {stop_crit}')
+            raise ValueError("The provided input 'stop_crit' is not valid. "
+                             "The options are: 'iter', 'func_abs', 'func_rel', 'vec_abs' and 'vec_rel'.")
         
-        # Alpha_2
-        if not (isinstance(alpha_2, float) or isinstance(alpha_2, int)):
-            logger_bdca.error(debug_path + 'input_check - type(alpha_2): {}'.format(type(alpha_2)))
-            raise TypeError("The provided input for the argument 'alpha_2' is not a number.")
-        elif alpha_2 <= 0:
-            logger_bdca.error(debug_path + 'input_check - alpha_2 <= 0: {}'.format(alpha_2))
-            raise ValueError("The provided input for the argument 'alpha_2' has to be bigger than 0.")
+        # Check alpha_bar
+        if not (isinstance(alpha_bar, float) or isinstance(alpha_bar, int)):
+            logger_bdca.error(debug_path + f'type(alpha_bar): {type(alpha_bar)}')
+            raise TypeError("The provided input for the argument 'alpha_bar' is not a number.")
+        elif alpha_bar <= 0:
+            logger_bdca.error(debug_path + f'alpha_bar <= 0: {alpha_bar}')
+            raise ValueError("The provided input for the argument 'alpha_bar' has to be bigger than 0.")
         
-        # Lambda_bar
+        # Check lambda_bar
         if not (isinstance(lambda_bar, float) or isinstance(lambda_bar, int) or lambda_bar is None):
-            logger_bdca.error(debug_path + 'input_check - type(lambda_bar): {}'.format(type(lambda_bar)))
+            logger_bdca.error(debug_path + f'type(lambda_bar): {type(lambda_bar)}')
             raise TypeError("The provided input for the argument 'lambda_bar' is not a number.")
 
         if lambda_bar is not None:
             if lambda_bar <= 0:
-                logger_bdca.error(debug_path + 'input_check - lambda_bar <= 0: {}'.format(lambda_bar))
+                logger_bdca.error(debug_path + f'lambda_bar <= 0: {lambda_bar}')
                 raise ValueError("The provided input for the argument 'lambda_bar' has to be bigger than 0.")
         
         # Beta
         if not isinstance(beta, float):
-            logger_bdca.error(debug_path + 'input_check - type(beta): {}'.format(type(beta)))
+            logger_bdca.error(debug_path + f'type(beta): {type(beta)}')
             raise TypeError("The provided input for the argument 'beta' is not a float.")
         elif beta <= 0 or beta >= 1:
-            logger_bdca.error(debug_path + 'input_check - beta <= 0 or beta >= 1: {}'.format(beta))
+            logger_bdca.error(debug_path + f'beta <= 0 or beta >= 1: {beta}')
             raise ValueError("The provided input for the argument 'beta' is not in the interval (0, 1).")
 
         # Decs
         if not isinstance(decs, int):
-            logger_bdca.error(debug_path + 'input_check - type(decs): {}'.format(type(decs)))
-            raise TypeError("The provided input for the argument 'decs is not a integer.")
-        elif k_max < 0:
-            logger_bdca.error(debug_path + 'input_check - decs < 0: {}'.format(decs))
+            logger_bdca.error(debug_path + f'type(decs): {type(decs)}')
+            raise TypeError("The provided input for the argument 'decs is not an integer.")
+        elif decs < 0:
+            logger_bdca.error(debug_path + f'decs < 0: {decs}')
             raise ValueError("The provided input for the argument 'decs' is smaller than 0.")
 
         # Verbose
         if not isinstance(verbose, bool):
-            logger_bdca.error(debug_path + 'input_check - type(verbose): {}'.format(type(verbose)))
+            logger_bdca.error(debug_path + f'type(verbose): {type(verbose)}')
             raise TypeError("The provided input for the argument 'verbose' is not a boolean.")
         
         # --------------------------------------------------------------------------------------------------------------
         # Compute output
+
+        # Set up debug path
+        debug_path = "2.0 - bdca - bdca_optimizer - compute output - "
 
         # Current iteration
         k = 0
@@ -633,14 +650,14 @@ class bdca(dca):
         # Initialize while loop condition
         cond = True
 
-        # Compute initial (approximated) objective function value and store it
+        # Compute initial objective function value and convex approximation and store the results
         self.track_f_proxy = np.array(self.f_x_proxy(x_k, x_k, args_dict))
         self.track_f = np.array([self.f_x(x_k, args_dict)])
 
         # Debugging
         if logger_bdca.isEnabledFor(logging.DEBUG):
-            logger_bdca.debug(debug_path + 'initial f(x): {}'.format(self.track_f[k]))
-            logger_bdca.debug(debug_path + 'initial f_proxy(x): {}'.format(self.track_f_proxy[k]))
+            logger_bdca.debug(debug_path + f'f(x): {np.round(self.track_f[k], decs)}')
+            logger_bdca.debug(debug_path + f'f_proxy(x): {np.round(self.track_f_proxy[k], decs)}')
 
         while cond:
 
@@ -663,24 +680,24 @@ class bdca(dca):
             # ----------------------------------------------------------------------------------------------------------
             # Perform line search
 
-            # Update descent direction (difference between new and old solution)
+            # Update descent direction
             d_k = res.x - x_k            
             
             # Debugging
             if logger_bdca.isEnabledFor(logging.DEBUG):
-                logger_bdca.debug(debug_path + 'iteration: {}'.format(k))
-                logger_bdca.debug(debug_path + 'min(res.x): {}'.format(np.min(res.x)))
-                logger_bdca.debug(debug_path + 'max(res.x): {}'.format(np.max(res.x)))
-                logger_bdca.debug(debug_path + 'mean(res.x): {}'.format(np.mean(res.x)))
-                logger_bdca.debug(debug_path + 'median(res.x): {}'.format(np.median(res.x)))
-                logger_bdca.debug(debug_path + 'sum(res.x): {}'.format(np.sum(res.x)))
-                logger_bdca.debug(debug_path + 'min(d_k): {}'.format(np.min(d_k)))
-                logger_bdca.debug(debug_path + 'max(d_k): {}'.format(np.max(d_k)))
-                logger_bdca.debug(debug_path + 'mean(d_k): {}'.format(np.mean(d_k)))
-                logger_bdca.debug(debug_path + 'median(d_k): {}'.format(np.median(d_k)))
-                logger_bdca.debug(debug_path + 'sum(d_k): {}'.format(np.sum(d_k)))
-                logger_bdca.debug(debug_path + 'current f_proxy(x): {}'.format(self.track_f_proxy[k]))
-                logger_bdca.debug(debug_path + 'current f(x): {}'.format(self.track_f[k]))
+                logger_bdca.debug(debug_path + f'iteration: {k}')
+                logger_bdca.debug(debug_path + f'min(res.x): {np.round(np.min(res.x), decs)}')
+                logger_bdca.debug(debug_path + f'max(res.x): {np.round(np.max(res.x), decs)}')
+                logger_bdca.debug(debug_path + f'avg(res.x): {np.round(np.mean(res.x), decs)}')
+                logger_bdca.debug(debug_path + f'q50(res.x): {np.round(np.median(res.x), decs)}')
+                logger_bdca.debug(debug_path + f'sum(res.x): {np.round(np.sum(res.x), decs)}')
+                logger_bdca.debug(debug_path + f'min(d_k): {np.round(np.min(d_k), decs)}')
+                logger_bdca.debug(debug_path + f'max(d_k): {np.round(np.max(d_k), decs)}')
+                logger_bdca.debug(debug_path + f'avg(d_k): {np.round(np.mean(d_k), decs)}')
+                logger_bdca.debug(debug_path + f'q50(d_k): {np.round(np.median(d_k), decs)}')
+                logger_bdca.debug(debug_path + f'sum(d_k): {np.round(np.sum(d_k), decs)}')
+                logger_bdca.debug(debug_path + f'f_proxy(x): {np.round(self.track_f_proxy[k], decs)}')
+                logger_bdca.debug(debug_path + f'f(x): {np.round(self.track_f[k], decs)}')
 
             # Check if we get a feasible direction, i.e d_k is not pointing into a direction out of the feasible set,
             # and at least one value has changed between old and new solution.
@@ -711,9 +728,9 @@ class bdca(dca):
                 
                 # Debugging
                 if logger_bdca.isEnabledFor(logging.DEBUG):
-                    logger_bdca.debug(debug_path + 'feasible direction: {}'.format(True))
-                    logger_bdca.debug(debug_path + 'lambda_k: {}'.format(lambda_k))
-                    logger_bdca.debug(debug_path + 'cond_overall: {}'.format(cond_overall))
+                    logger_bdca.debug(debug_path + f'feasible direction: {True}')
+                    logger_bdca.debug(debug_path + f'lambda_k: {np.round(lambda_k, decs)}')
+                    logger_bdca.debug(debug_path + f'cond_overall: {cond_overall}')
                 
                 # Check if current solution is non-feasible, scale down lambda_k
                 while cond_overall:
@@ -724,14 +741,16 @@ class bdca(dca):
                 cond_left = self.f_x(res.x + lambda_k * d_k, args_dict)
 
                 # Initialize right side of Armijo type condition
-                cond_right = self.f_x(res.x, args_dict) - alpha_2 * np.square(lambda_k) * np.square(np.linalg.norm(d_k))
+                fx_0 = self.f_x(res.x, args_dict)
+                constant = alpha_bar * np.square(np.linalg.norm(d_k))
+                cond_right = fx_0 - np.square(lambda_k) * constant
 
                 # Debugging
                 if logger_bdca.isEnabledFor(logging.DEBUG):
-                    logger_bdca.debug(debug_path + 'feasible lambda_k: {}'.format(lambda_k))
-                    logger_bdca.debug(debug_path + 'cond_left: {}'.format(cond_left))
-                    logger_bdca.debug(debug_path + 'cond_right: {}'.format(cond_right))
-                    logger_bdca.debug(debug_path + 'cond_left > cond_right: {}'.format(cond_left > cond_right))
+                    logger_bdca.debug(debug_path + f'feasible lambda_k: {np.round(lambda_k, decs)}')
+                    logger_bdca.debug(debug_path + f'cond_left: {cond_left}')
+                    logger_bdca.debug(debug_path + f'cond_right: {cond_right}')
+                    logger_bdca.debug(debug_path + f'cond_left > cond_right: {cond_left > cond_right}')
                 
                 # Check Armijo type condition and scale down lambda_k until condition is fulfilled
                 while cond_left > cond_right or cond_overall:
@@ -739,30 +758,34 @@ class bdca(dca):
                     lambda_k *= beta
                     # Update left and right part of Armijo type condition
                     cond_left = self.f_x(res.x + lambda_k * d_k, args_dict)
-                    cond_right = self.f_x(res.x, args_dict) - \
-                                 alpha_2 * np.square(lambda_k) * np.square(np.linalg.norm(d_k))
+                    cond_right = fx_0 - np.square(lambda_k) * constant
+
                     # Check if solution is still feasible
                     cond_overall = any(res.x + lambda_k * d_k < 0) or any(res.x + lambda_k * d_k > 1)
 
             else:
                 lambda_k = 0
 
+            fx_k = self.f_x(res.x + lambda_k * d_k, args_dict)
+
             # Debugging
             if logger_bdca.isEnabledFor(logging.DEBUG):
-                logger_bdca.debug(debug_path + 'final lambda_k: {}'.format(lambda_k))
-                logger_bdca.debug(debug_path + 'final f(x): {}'.format(self.f_x(res.x + lambda_k * d_k, args_dict)))
+                logger_bdca.debug(debug_path + f'final lambda_k: {np.round(lambda_k, decs)}')
+                logger_bdca.debug(debug_path + f'final f(x): {np.round(fx_k, decs)}')
 
             # ----------------------------------------------------------------------------------------------------------
             # Check line search result
 
             # Check if d_k was a descent direction
-            if self.f_x(res.x, args_dict) < self.f_x(res.x + lambda_k * d_k, args_dict):
+            if fx_0 < fx_k:
                 # Update the counter for non descent directions
                 self.cnt_non_descent_dc += 1
                 # Reset counter for line search
                 self.cnt_line_search -= 1
                 # Set lambda to zero as d_k was a non-descent direction
                 lambda_k = 0
+
+                fx_k = self.f_x(res.x + lambda_k * d_k, args_dict)
 
             # ----------------------------------------------------------------------------------------------------------
             # Check new solution
@@ -772,18 +795,18 @@ class bdca(dca):
 
             # Add new (approximated) function value and current lambda_k to the tracking vectors
             self.track_f_proxy = np.append(self.track_f_proxy, self.f_x_proxy(curr_solu, x_k, args_dict))
-            self.track_f = np.append(self.track_f, self.f_x(curr_solu, args_dict))
+            self.track_f = np.append(self.track_f, fx_k)
             self.track_lambdas = np.append(self.track_lambdas, lambda_k)
 
             # Debugging
             if logger_bdca.isEnabledFor(logging.DEBUG):
-                logger_bdca.debug(debug_path + 'min(x_k): {}'.format(np.min(curr_solu)))
-                logger_bdca.debug(debug_path + 'max(x_k): {}'.format(np.max(curr_solu)))
-                logger_bdca.debug(debug_path + 'mean(x_k): {}'.format(np.mean(curr_solu)))
-                logger_bdca.debug(debug_path + 'median(x_k): {}'.format(np.median(curr_solu)))
-                logger_bdca.debug(debug_path + 'sum(x_k): {}'.format(np.sum(curr_solu)))
-                logger_bdca.debug(debug_path + 'current f_proxy(x): {}'.format(self.track_f_proxy[k]))
-                logger_bdca.debug(debug_path + 'current f(x): {}'.format(self.track_f[k]))
+                logger_bdca.debug(debug_path + f'min(x_k): {np.round(np.min(curr_solu), decs)}')
+                logger_bdca.debug(debug_path + f'max(x_k): {np.round(np.max(curr_solu), decs)}')
+                logger_bdca.debug(debug_path + f'avg(x_k): {np.round(np.mean(curr_solu), decs)}')
+                logger_bdca.debug(debug_path + f'q50(x_k): {np.round(np.median(curr_solu), decs)}')
+                logger_bdca.debug(debug_path + f'sum(x_k): {np.round(np.sum(curr_solu), decs)}')
+                logger_bdca.debug(debug_path + f'f_proxy(x): {np.sum(self.track_f_proxy[k])}')
+                logger_bdca.debug(debug_path + f'f(x): {np.round(np.sum(self.track_f[k]), decs)}')
 
             # Check if current solution is feasible
             n_feasible_solu = (np.round(np.sum(curr_solu), decs) != 1) or any(0 > curr_solu) or any(curr_solu > 1)
@@ -825,7 +848,7 @@ class bdca(dca):
             
             # Debugging
             if logger_bdca.isEnabledFor(logging.DEBUG):
-                logger_bdca.debug(debug_path + 'stop_crit - value: {}'.format(stop_crit_value))
+                logger_bdca.debug(debug_path + f'stop_crit - value: {stop_crit_value}')
 
         # If the maximum iteration is reached print a warning
         if k == k_max and stop_crit != "iter":
@@ -847,12 +870,9 @@ class bdca(dca):
 ########################################################################################################################
 
 __author__ = "Marah-Lisanne Thormann"
-__copyright__ = "Copyright 2023, The VaR-BDCA Project"
 __credits__ = ["Phan Vuong", "Alain Zemkoho"]
-__version__ = "1.2"
-__maintainer__ = "Marah-Lisanne Thormann"
+__version__ = "1.3"
 __email__ = "m.-l.thormann@soton.ac.uk"
-__status__ = "Production"
 
 ########################################################################################################################
 ########################################################################################################################
